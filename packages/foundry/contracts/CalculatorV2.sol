@@ -4,7 +4,12 @@ pragma solidity 0.8.20;
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 contract CalculatorV2 is Initializable {
-    function initialize() external {}
+
+    string public testSring;
+
+    function initialize(string calldata _string) external {
+        testSring = _string;
+    }
 
     function add(uint256 a, uint256 b) public pure returns (uint256) {
         return a + b;
