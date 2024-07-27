@@ -43,12 +43,15 @@ contract CalculatorUpgradeTest is Test {
 
         ITransparentUpgradeableProxy(address(proxy)).upgradeToAndCall(
             address(calculatorV2),
-            abi.encodeWithSelector(calculatorV2.initialize.selector)
+            abi.encodeWithSelector(calculatorV2.initialize.selector , "Test")
         );
 
         // Interact with proxy using CalculatorV2 functions
         CalculatorV2 proxyCalculatorV2 = CalculatorV2(address(proxy));
         uint256 result = proxyCalculatorV2.mod(10, 3);
         assertEq(result, 1);
+
+        string memory text = proxyCalculatorV2.testSring();
+        assertEq(text, "Test");
     }
 }

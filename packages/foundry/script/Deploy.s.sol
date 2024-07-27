@@ -1,11 +1,12 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import "../contracts/YourContract.sol";
+import "../contracts/svgNFT.sol";
 import "./DeployHelpers.s.sol";
 
 contract DeployScript is ScaffoldETHDeploy {
     error InvalidPrivateKey(string);
+    SVGNFT nftContract;
 
     function run() external {
         uint256 deployerPrivateKey = setupLocalhostEnv();
@@ -16,15 +17,26 @@ contract DeployScript is ScaffoldETHDeploy {
         }
         vm.startBroadcast(deployerPrivateKey);
 
-        YourContract yourContract = new YourContract(
-            vm.addr(deployerPrivateKey)
-        );
+        nftContract = new SVGNFT();
         console.logString(
             string.concat(
-                "YourContract deployed at: ",
-                vm.toString(address(yourContract))
+                "The new SVG Contract deployed at: ",
+                vm.toString(address(nftContract))
             )
         );
+
+        uint256 nftPrice = nftContract.price();
+
+        mintNFT(nftPrice);
+
+        nftContract = new SVGNFT();
+
+        Deployment memory newContractDeployed = Deployment(
+            "SVGNFT",
+            address(nftContract)
+        );
+
+        deployments.push(newContractDeployed);
 
         vm.stopBroadcast();
 
@@ -36,5 +48,8 @@ contract DeployScript is ScaffoldETHDeploy {
         exportDeployments();
     }
 
-    function test() public {}
+    function mintNFT(uint256 _nftPrice) public {
+        uint256 tokenID = nftContract.mintItem{value: _nftPrice}();
+        console.log("@@@tokenID", tokenID);
+    }
 }
