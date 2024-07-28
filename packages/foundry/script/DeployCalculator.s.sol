@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.20;
+pragma solidity ^0.8.19;
 
 import "forge-std/Script.sol";
 import "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
@@ -7,7 +7,7 @@ import "../contracts/Calculator.sol";
 
 contract DeployCalculatorScript is Script {
     function run() external {
-        uint256 deployerPrivateKey = vm.envUint("PK");
+        uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
 
         address admin = vm.envAddress("ADMIN_ADDRESS");

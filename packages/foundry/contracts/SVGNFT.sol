@@ -1,20 +1,20 @@
 pragma solidity ^0.8.0;
 //SPDX-License-Identifier: MIT
 
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
-import "@openzeppelin/contracts/utils/base64.sol";
+import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import {Base64} from "@openzeppelin/contracts/utils/base64.sol";
 
-import "./HexStrings.sol";
-import "./ToColor.sol";
+import {HexStrings} from "./HexStrings.sol";
+import {ToColor} from "./ToColor.sol";
 //learn more: https://docs.openzeppelin.com/contracts/3.x/erc721
 
 // GET LISTED ON OPENSEA: https://testnets.opensea.io/get-listed/step-two
 
 error SVGNFT__INVALIDTOKENID();
 
-contract SVGNFT is ERC721Enumerable, Ownable {
+contract SVGNFT is ERC721, Ownable {
     using Strings for uint256;
     using HexStrings for uint160;
     using ToColor for bytes3;
