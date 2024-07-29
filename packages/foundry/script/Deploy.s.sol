@@ -3,6 +3,8 @@ pragma solidity ^0.8.19;
 
 import "../contracts/SVGNFT.sol";
 import "./DeployHelpers.s.sol";
+import "forge-std/Script.sol";
+import "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
 contract DeployScript is ScaffoldETHDeploy {
     error InvalidPrivateKey(string);
@@ -17,7 +19,9 @@ contract DeployScript is ScaffoldETHDeploy {
 
         vm.startBroadcast(deployerPrivateKey);
 
+        //Deploy SVG Contract
         SVGNFT nftContract = new SVGNFT();
+
         console.logString(
             string.concat(
                 "The new SVG Contract deployed at: ",
@@ -25,10 +29,17 @@ contract DeployScript is ScaffoldETHDeploy {
             )
         );
 
-        uint256 nftPrice = nftContract.price();
+        // Initialize data
+        bytes memory data = abi.encodeWithSelector(
+            Calculator.initialize.selector
+        );
 
-        uint256 tokenID = nftContract.mintItem{value: nftPrice}();
-        console.log("@@@tokenID", tokenID);
+        // Deploy TransparentUpgradeableProxy
+        TransparentUpgradeableProxy proxy = new TransparentUpgradeableProxy(
+            address(calculator),
+            admin,
+            data
+        );
 
         vm.stopBroadcast();
 
