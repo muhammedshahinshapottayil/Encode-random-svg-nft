@@ -17,6 +17,8 @@ contract DeployScript is ScaffoldETHDeploy {
             );
         }
 
+        address admin = vm.envAddress("ADMIN_ADDRESS");
+
         vm.startBroadcast(deployerPrivateKey);
 
         //Deploy SVG Contract
@@ -31,14 +33,21 @@ contract DeployScript is ScaffoldETHDeploy {
 
         // Initialize data
         bytes memory data = abi.encodeWithSelector(
-            Calculator.initialize.selector
+            nftContract.initialize.selector
         );
 
         // Deploy TransparentUpgradeableProxy
         TransparentUpgradeableProxy proxy = new TransparentUpgradeableProxy(
-            address(calculator),
+            address(nftContract),
             admin,
             data
+        );
+
+        console.logString(
+            string.concat(
+                "The new proxy Contract deployed at: ",
+                vm.toString(address(proxy))
+            )
         );
 
         vm.stopBroadcast();
