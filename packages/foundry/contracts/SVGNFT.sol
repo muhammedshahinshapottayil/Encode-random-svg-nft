@@ -1,10 +1,11 @@
 pragma solidity ^0.8.0;
 //SPDX-License-Identifier: MIT
 
-import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {Base64} from "@openzeppelin/contracts/utils/base64.sol";
+import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 import {HexStrings} from "./HexStrings.sol";
 import {ToColor} from "./ToColor.sol";
@@ -14,7 +15,7 @@ import {ToColor} from "./ToColor.sol";
 
 error SVGNFT__INVALIDTOKENID();
 
-contract SVGNFT is ERC721, Ownable {
+contract SVGNFT is ERC721, Ownable, Initializable {
     using Strings for uint256;
     using HexStrings for uint160;
     using ToColor for bytes3;
@@ -33,10 +34,17 @@ contract SVGNFT is ERC721, Ownable {
     mapping(uint256 => uint256) public chubbiness;
     mapping(uint256 => uint256) public mouthLength;
 
-    constructor() public ERC721("OptimisticLoogies", "OPLOOG") Ownable(msg.sender) {
+    function initialize() public initializer {
         // RELEASE THE OPTIMISTIC LOOGIES!
         _tokenIds = 1;
+        emit Initialized(11111111);
     }
+
+    constructor()
+        public
+        ERC721("OptimisticLoogies", "OPLOOG")
+        Ownable(msg.sender)
+    {}
 
     function mintItem() public payable returns (uint256) {
         require(_tokenIds < limit, "DONE MINTING");
