@@ -2,8 +2,10 @@
 src = 'contracts'
 out = 'out'
 libs = ['lib']
-fs_permissions = [{ access = "read-write", path = "./"}]
+fs_permissions = [{ access = "read-write", path = "./" }]
 via_ir = true
+optimizer = true
+optimizer_runs = 20_000
 
 [rpc_endpoints]
 default_network = "http://127.0.0.1:8545"

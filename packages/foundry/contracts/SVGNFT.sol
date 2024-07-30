@@ -9,7 +9,7 @@ import {Base64} from "@openzeppelin/contracts/utils/base64.sol";
 import {HexStrings} from "./HexStrings.sol";
 import {ToColor} from "./ToColor.sol";
 
-error SVGNFTV2__INVALIDTOKENID();
+error SVGNFT__INVALIDTOKENID();
 
 contract SVGNFT is ERC721Upgradeable, OwnableUpgradeable {
     using Strings for uint256;
@@ -33,54 +33,103 @@ contract SVGNFT is ERC721Upgradeable, OwnableUpgradeable {
     function initialize() public initializer {
         __ERC721_init("OptimisticLoogies", "OPLOOG");
         __Ownable_init(msg.sender);
-
-        // RELEASE THE OPTIMISTIC LOOGIES!
         _tokenIds = 1;
         emit Initialized(11111111);
     }
 
     function mintItem() public payable returns (uint256) {
-        require(_tokenIds < limit, "DONE MINTING");
-        require(msg.value >= price, "NOT ENOUGH");
+        uint256 id;
+        bytes32 predictableRandom;
 
-        price = (price * curve) / 1000;
+        assembly {
+            // Check if _tokenIds < limit
+            if gt(sload(_tokenIds.slot), limit) {
+                // Store the error message
+                mstore(0x00, 0x20) // Store offset to error string
+                mstore(0x20, 0x0c) // Store length of error string
+                mstore(0x40, "DONE MINTING") // Store error string
+                revert(0x00, 0x60) // Revert with error message
+            }
 
-        uint256 id = _tokenIds;
+            // Check if msg.value >= price
+            if lt(callvalue(), sload(price.slot)) {
+                // Store the error message
+                mstore(0x00, 0x20) // Store offset to error string
+                mstore(0x20, 0x0a) // Store length of error string
+                mstore(0x40, "NOT ENOUGH") // Store error string
+                revert(0x00, 0x60) // Revert with error message
+            }
 
-        _tokenIds += 1;
+            // Calculate new price: price = (price * curve) / 1000
+            let newPrice := div(mul(sload(price.slot), curve), 1000)
+            sstore(price.slot, newPrice)
 
-        _mint(msg.sender, id);
+            // Get current _tokenIds and increment
+            id := sload(_tokenIds.slot)
+            sstore(_tokenIds.slot, add(id, 1))
 
-        bytes32 predictableRandom = keccak256(
-            abi.encodePacked(
-                id,
-                blockhash(block.number - 1),
-                msg.sender,
-                address(this)
+            // Generate predictableRandom
+            mstore(0x00, id)
+            mstore(0x20, blockhash(sub(number(), 1)))
+            mstore(0x40, caller())
+            mstore(0x60, address())
+            predictableRandom := keccak256(0x00, 0x80)
+
+            // Set color
+            let colorValue := or(
+                and(0xFF00, shl(8, byte(0, predictableRandom))),
+                or(
+                    and(0x00FF, byte(1, predictableRandom)),
+                    and(0xFF0000, shl(16, byte(2, predictableRandom)))
+                )
             )
-        );
-        color[id] =
-            bytes2(predictableRandom[0]) |
-            (bytes2(predictableRandom[1]) >> 8) |
-            (bytes3(predictableRandom[2]) >> 16);
-        chubbiness[id] =
-            35 +
-            ((55 * uint256(uint8(predictableRandom[3]))) / 255);
-        // small chubiness loogies have small mouth
-        mouthLength[id] =
-            180 +
-            ((uint256(chubbiness[id] / 4) *
-                uint256(uint8(predictableRandom[4]))) / 255);
+            sstore(add(color.slot, id), colorValue)
 
-        (bool success, ) = recipient.call{value: msg.value}("");
-        require(success, "could not send");
+            // Set chubbiness
+            let chubbinessValue := add(
+                35,
+                div(mul(55, byte(3, predictableRandom)), 255)
+            )
+            sstore(add(chubbiness.slot, id), chubbinessValue)
+
+            // Set mouthLength
+            let mouthLengthValue := add(
+                180,
+                div(
+                    mul(div(chubbinessValue, 4), byte(4, predictableRandom)),
+                    255
+                )
+            )
+            sstore(add(mouthLength.slot, id), mouthLengthValue)
+
+            // Transfer value to recipient
+            let success := call(
+                gas(),
+                0xa81a6a910FeD20374361B35C451a4a44F86CeD46,
+                callvalue(),
+                0,
+                0,
+                0,
+                0
+            )
+            if iszero(success) {
+                // Store the error message
+                mstore(0x00, 0x20) // Store offset to error string
+                mstore(0x20, 0x0e) // Store length of error string
+                mstore(0x40, "could not send") // Store error string
+                revert(0x00, 0x60) // Revert with error message
+            }
+        }
+
+        // The _mint function call is kept outside of assembly as it's likely an internal function
+        _mint(msg.sender, id);
 
         return id;
     }
 
     function tokenURI(uint256 id) public view override returns (string memory) {
         if (ownerOf(id) == address(0)) {
-            revert SVGNFTV2__INVALIDTOKENID();
+            revert SVGNFT__INVALIDTOKENID();
         }
         string memory name = string(
             abi.encodePacked("Loogie #", id.toString())
@@ -177,27 +226,37 @@ contract SVGNFT is ERC721Upgradeable, OwnableUpgradeable {
         return render;
     }
 
-    function uint2str(
-        uint _i
-    ) internal pure returns (string memory _uintAsString) {
+    function uint2str(uint256 _i) internal pure returns (string memory) {
         if (_i == 0) {
             return "0";
         }
-        uint j = _i;
-        uint len;
+
+        uint256 j = _i;
+        uint256 length;
         while (j != 0) {
-            len++;
+            length++;
             j /= 10;
         }
-        bytes memory bstr = new bytes(len);
-        uint k = len;
-        while (_i != 0) {
-            k = k - 1;
-            uint8 temp = (48 + uint8(_i - (_i / 10) * 10));
-            bytes1 b1 = bytes1(temp);
-            bstr[k] = b1;
-            _i /= 10;
+
+        bytes memory bstr = new bytes(length);
+
+        assembly {
+            let position := add(bstr, 32)
+            let end := add(position, length)
+
+            for {
+
+            } gt(length, 0) {
+
+            } {
+                length := sub(length, 1)
+                let remainder := mod(_i, 10)
+                mstore8(sub(end, 1), add(remainder, 48))
+                _i := div(_i, 10)
+                end := sub(end, 1)
+            }
         }
+
         return string(bstr);
     }
 

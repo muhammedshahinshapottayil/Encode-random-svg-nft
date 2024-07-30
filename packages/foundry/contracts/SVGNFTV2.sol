@@ -9,7 +9,7 @@ import {Base64} from "@openzeppelin/contracts/utils/base64.sol";
 import {HexStrings} from "./HexStrings.sol";
 import {ToColor} from "./ToColor.sol";
 
-error SVGNFT__INVALIDTOKENID();
+error SVGNFTV2__INVALIDTOKENID();
 
 contract SVGNFTV2 is ERC721Upgradeable, OwnableUpgradeable {
     using Strings for uint256;
@@ -87,7 +87,7 @@ contract SVGNFTV2 is ERC721Upgradeable, OwnableUpgradeable {
 
     function tokenURI(uint256 id) public view override returns (string memory) {
         if (ownerOf(id) == address(0)) {
-            revert SVGNFT__INVALIDTOKENID();
+            revert SVGNFTV2__INVALIDTOKENID();
         }
         string memory name = string(
             abi.encodePacked("Loogie #", id.toString())
