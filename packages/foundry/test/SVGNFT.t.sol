@@ -89,14 +89,16 @@ contract SVGNFTProxyTest is Test {
 
     function testMintLimit() public {
         vm.startPrank(USER);
-        vm.deal(USER, 1000 ether);
+        vm.deal(USER, 10 ether);
 
-        for (uint i = 0; i < 11; i++) {
-            proxiedSVGNFT.mintItem{value: 0.01 ether}();
+        for (uint i = 1; i < 12; i++) {
+            uint256 currentPrice = proxiedSVGNFT.getTokenPrice();
+            proxiedSVGNFT.mintItem{value: currentPrice}();
         }
 
-        vm.expectRevert("DONE MINTING");
-        proxiedSVGNFT.mintItem{value: 0.01 ether}();
+        vm.expectRevert(SVGNFT.SVGNFT__DONEMINTING.selector);
+        uint256 currentPrice = proxiedSVGNFT.getTokenPrice();
+        proxiedSVGNFT.mintItem{value: currentPrice}();
 
         vm.stopPrank();
     }
@@ -107,18 +109,16 @@ contract SVGNFTProxyTest is Test {
 
         uint256 tokenId = proxiedSVGNFT.mintItem{value: 0.001 ether}();
         string memory uri = proxiedSVGNFT.tokenURI(tokenId);
-        console.log(tokenId);
-        console.log(uri);
 
         assertTrue(bytes(uri).length > 0, "Token URI should not be empty");
 
         vm.stopPrank();
     }
 
-    // function testInvalidTokenURI() public {
-    //     vm.expectRevert(SVGNFT.SVGNFT__INVALIDTOKENID.selector);
-    //     proxiedSVGNFT.tokenURI(999);
-    // }
+    function testInvalidTokenURI() public {
+        vm.expectRevert(SVGNFT.SVGNFT__INVALIDTOKENID.selector);
+        proxiedSVGNFT.tokenURI(999);
+    }
 
     function testUpgrade() public {
         // This test is a placeholder for upgrade functionality

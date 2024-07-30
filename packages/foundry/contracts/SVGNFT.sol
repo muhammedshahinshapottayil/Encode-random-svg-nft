@@ -9,9 +9,10 @@ import {Base64} from "@openzeppelin/contracts/utils/base64.sol";
 import {HexStrings} from "./HexStrings.sol";
 import {ToColor} from "./ToColor.sol";
 
-error SVGNFT__INVALIDTOKENID();
-
 contract SVGNFT is ERC721Upgradeable, OwnableUpgradeable {
+    error SVGNFT__INVALIDTOKENID();
+    error SVGNFT__DONEMINTING();
+
     using Strings for uint256;
     using HexStrings for uint160;
     using ToColor for bytes3;
@@ -21,9 +22,9 @@ contract SVGNFT is ERC721Upgradeable, OwnableUpgradeable {
     address payable public constant recipient =
         payable(0xa81a6a910FeD20374361B35C451a4a44F86CeD46);
 
-    uint256 public constant limit = 3728;
+    uint256 public constant limit = 10;
     uint256 public constant curve = 1002; // price increase 0,4% with each purchase
-    uint256 public price = 0.001 ether;
+    uint256 public price;
     // the 1154th optimistic loogies cost 0.01 ETH, the 2306th cost 0.1ETH, the 3459th cost 1 ETH and the last ones cost 1.7 ETH
 
     mapping(uint256 => bytes3) public color;
@@ -34,6 +35,7 @@ contract SVGNFT is ERC721Upgradeable, OwnableUpgradeable {
         __ERC721_init("OptimisticLoogies", "OPLOOG");
         __Ownable_init(msg.sender);
         _tokenIds = 1;
+        price = 0.001 ether;
         emit Initialized(11111111);
     }
 
@@ -45,10 +47,8 @@ contract SVGNFT is ERC721Upgradeable, OwnableUpgradeable {
             // Check if _tokenIds < limit
             if gt(sload(_tokenIds.slot), limit) {
                 // Store the error message
-                mstore(0x00, 0x20) // Store offset to error string
-                mstore(0x20, 0x0c) // Store length of error string
-                mstore(0x40, "DONE MINTING") // Store error string
-                revert(0x00, 0x60) // Revert with error message
+                mstore(0x00, 0x2260e398) // SVGNFT__DONEMINTING() selector
+                revert(0x00, 0x04)
             }
 
             // Check if msg.value >= price
@@ -193,7 +193,6 @@ contract SVGNFT is ERC721Upgradeable, OwnableUpgradeable {
         return svg;
     }
 
-    // Visibility is `public` to enable it being called by other contracts for composition.
     function renderTokenById(uint256 id) public view returns (string memory) {
         // the translate function for the mouth is based on the curve y = 810/11 - 9x/11
         string memory render = string(
