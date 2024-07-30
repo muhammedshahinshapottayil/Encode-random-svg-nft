@@ -1,20 +1,17 @@
 pragma solidity ^0.8.0;
 //SPDX-License-Identifier: MIT
 
-import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {ERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {Base64} from "@openzeppelin/contracts/utils/base64.sol";
 
 import {HexStrings} from "./HexStrings.sol";
 import {ToColor} from "./ToColor.sol";
-//learn more: https://docs.openzeppelin.com/contracts/3.x/erc721
-
-// GET LISTED ON OPENSEA: https://testnets.opensea.io/get-listed/step-two
 
 error SVGNFT__INVALIDTOKENID();
 
-contract SVGNFT is ERC721, Ownable {
+contract SVGNFTV2 is ERC721Upgradeable, OwnableUpgradeable {
     using Strings for uint256;
     using HexStrings for uint160;
     using ToColor for bytes3;
@@ -35,13 +32,13 @@ contract SVGNFT is ERC721, Ownable {
     mapping(uint256 => uint256) public eyeSize;
     mapping(uint256 => bytes3) public eyeColor;
 
-    constructor()
-        public
-        ERC721("OptimisticLoogies", "OPLOOG")
-        Ownable(msg.sender)
-    {
-        // RELEASE THE OPTIMISTIC LOOGIES!
-        _tokenIds = 1;
+    // @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
+    function initialize() public initializer {
+        emit Initialized(11111111);
     }
 
     function mintItem() public payable returns (uint256) {
