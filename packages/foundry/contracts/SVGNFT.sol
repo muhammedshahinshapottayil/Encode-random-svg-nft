@@ -8,11 +8,8 @@ import {Base64} from "@openzeppelin/contracts/utils/base64.sol";
 
 import {HexStrings} from "./HexStrings.sol";
 import {ToColor} from "./ToColor.sol";
-//learn more: https://docs.openzeppelin.com/contracts/3.x/erc721
 
-// GET LISTED ON OPENSEA: https://testnets.opensea.io/get-listed/step-two
-
-error SVGNFT__INVALIDTOKENID();
+error SVGNFTV2__INVALIDTOKENID();
 
 contract SVGNFT is ERC721Upgradeable, OwnableUpgradeable {
     using Strings for uint256;
@@ -32,11 +29,6 @@ contract SVGNFT is ERC721Upgradeable, OwnableUpgradeable {
     mapping(uint256 => bytes3) public color;
     mapping(uint256 => uint256) public chubbiness;
     mapping(uint256 => uint256) public mouthLength;
-
-    // @custom:oz-upgrades-unsafe-allow constructor
-    constructor() {
-        _disableInitializers();
-    }
 
     function initialize() public initializer {
         __ERC721_init("OptimisticLoogies", "OPLOOG");
@@ -88,7 +80,7 @@ contract SVGNFT is ERC721Upgradeable, OwnableUpgradeable {
 
     function tokenURI(uint256 id) public view override returns (string memory) {
         if (ownerOf(id) == address(0)) {
-            revert SVGNFT__INVALIDTOKENID();
+            revert SVGNFTV2__INVALIDTOKENID();
         }
         string memory name = string(
             abi.encodePacked("Loogie #", id.toString())
@@ -207,5 +199,13 @@ contract SVGNFT is ERC721Upgradeable, OwnableUpgradeable {
             _i /= 10;
         }
         return string(bstr);
+    }
+
+    function testGetTokenID() external view returns (uint256) {
+        return _tokenIds;
+    }
+
+    function getTokenPrice() external view returns (uint256) {
+        return price;
     }
 }
