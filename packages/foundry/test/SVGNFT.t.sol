@@ -91,12 +91,12 @@ contract SVGNFTProxyTest is Test {
         vm.startPrank(USER);
         vm.deal(USER, 1000 ether);
 
-        for (uint i = 0; i < 3728; i++) {
-            proxiedSVGNFT.mintItem{value: 1 ether}();
+        for (uint i = 0; i < 11; i++) {
+            proxiedSVGNFT.mintItem{value: 0.01 ether}();
         }
 
         vm.expectRevert("DONE MINTING");
-        proxiedSVGNFT.mintItem{value: 1 ether}();
+        proxiedSVGNFT.mintItem{value: 0.01 ether}();
 
         vm.stopPrank();
     }
