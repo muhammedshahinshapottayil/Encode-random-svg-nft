@@ -14,7 +14,8 @@ It exposes a function:
 It returns the relevant SVG that can be embedded in other SVG code for rendering.
 
 <h4 align="center">
-  <a href="https://optimistic.loogies.io">Website</a>
+  <a href="https://optimistic.loogies.io">Website || </a>
+  <a href="https://sepolia.etherscan.io/address/0x099DaA1497dbA7A37Ee5B9f117C3A29F148BBA6e#code">Verified SVGNFT on Sepolia</a>
 </h4>
 
 
