@@ -22,7 +22,7 @@ function getFiles(path) {
   });
 }
 function getArtifactOfContract(contractName) {
-  console.log("contractName",contractName)
+  console.log("contractName", contractName);
   const current_path_to_artifacts = path.join(
     __dirname,
     "..",
