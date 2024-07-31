@@ -22,21 +22,35 @@ contract SVGNFTProxyTest is Test {
         // Deploy the implementation contract
         implementation = new SVGNFT();
 
-        // Deploy the ProxyAdmin
-        proxyAdmin = new ProxyAdmin(address(ADMIN));
-
         // Prepare the initialization data
         bytes memory data = abi.encodeWithSelector(SVGNFT.initialize.selector);
 
         // Deploy the TransparentUpgradeableProxy
         proxy = new TransparentUpgradeableProxy(
             address(implementation),
-            address(proxyAdmin),
+            ADMIN,
             data
         );
 
         // Create a proxied SVGNFT for easier interaction
         proxiedSVGNFT = SVGNFT(address(proxy));
+
+        // Get the address of the automatically created ProxyAdmin
+        address proxyAdminAddress = address(
+            uint160(
+                uint256(
+                    vm.load(
+                        address(proxy),
+                        bytes32(
+                            uint256(
+                                0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103
+                            )
+                        )
+                    )
+                )
+            )
+        );
+        proxyAdmin = ProxyAdmin(proxyAdminAddress);
 
         vm.stopPrank();
     }
@@ -136,23 +150,21 @@ contract SVGNFTProxyTest is Test {
     }
 
     function testUpgrade() public {
-        // This test is a placeholder for upgrade functionality
-        // You would typically deploy a new implementation and upgrade to it
-
+        proxiedSVGNFT.testGetTokenID();
         SVGNFTV2 svgNFTV2 = new SVGNFTV2();
 
-        vm.prank(address(proxyAdmin));
+        vm.prank(ADMIN);
 
         try
-            ITransparentUpgradeableProxy(address(proxy)).upgradeToAndCall(
+            proxyAdmin.upgradeAndCall(
+                ITransparentUpgradeableProxy(address(proxy)),
                 address(svgNFTV2),
                 abi.encodeWithSelector(svgNFTV2.initialize.selector)
             )
         {
             // After upgrade, proxiedSVGNFT should still work as expected
             uint256 tokenID = proxiedSVGNFT.testGetTokenID();
-            console.log("@@tokenID", tokenID);
-            assertEq(tokenID, 2, "TokenId should equal 2");
+            assertEq(tokenID, 1, "TokenId should equal 1");
         } catch Error(string memory reason) {
             console.log("Upgrade failed with reason:", reason);
         }

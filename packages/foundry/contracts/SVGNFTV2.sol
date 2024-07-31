@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import {ERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
-import {Base64} from "@openzeppelin/contracts/utils/base64.sol";
+import {Base64} from "@openzeppelin/contracts/utils/Base64.sol";
 
 import {HexStrings} from "./HexStrings.sol";
 import {ToColor} from "./ToColor.sol";
@@ -37,7 +37,8 @@ contract SVGNFTV2 is ERC721Upgradeable, OwnableUpgradeable {
         _disableInitializers();
     }
 
-    function initialize() public initializer {
+    // reinitializer is not needed or mandatory
+    function initialize() public reinitializer(2) {
         emit Initialized(11111111);
     }
 
@@ -210,5 +211,13 @@ contract SVGNFTV2 is ERC721Upgradeable, OwnableUpgradeable {
             _i /= 10;
         }
         return string(bstr);
+    }
+
+    function testGetTokenID() external view returns (uint256) {
+        return _tokenIds;
+    }
+
+    function getTokenPrice() external view returns (uint256) {
+        return price;
     }
 }

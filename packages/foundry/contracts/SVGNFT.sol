@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import {ERC721Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
-import {Base64} from "@openzeppelin/contracts/utils/base64.sol";
+import {Base64} from "@openzeppelin/contracts/utils/Base64.sol";
 
 import {HexStrings} from "./HexStrings.sol";
 import {ToColor} from "./ToColor.sol";
