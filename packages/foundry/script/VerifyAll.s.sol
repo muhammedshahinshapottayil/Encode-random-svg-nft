@@ -1,8 +1,9 @@
 //SPDX-License-Identifier: MIT
-pragma solidity ^0.8.19;
 
-import "forge-std/Script.sol";
+pragma solidity 0.8.26;
+
 import "forge-std/Vm.sol";
+import "forge-std/Script.sol";
 import "solidity-bytes-utils/BytesLib.sol";
 
 /**
