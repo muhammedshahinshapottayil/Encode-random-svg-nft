@@ -4,7 +4,7 @@ pragma solidity 0.8.26;
 
 import { ToColor } from "./ToColor.sol";
 import { HexStrings } from "./HexStrings.sol";
-import { Base64 } from "@openzeppelin/contracts/utils/base64.sol";
+import { Base64 } from "@openzeppelin/contracts/utils/Base64.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import { OwnableUpgradeable } from
   "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
