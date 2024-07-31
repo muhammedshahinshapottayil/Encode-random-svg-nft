@@ -12,6 +12,7 @@ import {ToColor} from "./ToColor.sol";
 contract SVGNFT is ERC721Upgradeable, OwnableUpgradeable {
     error SVGNFT__INVALIDTOKENID();
     error SVGNFT__DONEMINTING();
+    error SVGNFT__NFTPRICEHIGHER();
 
     using Strings for uint256;
     using HexStrings for uint160;
@@ -43,23 +44,15 @@ contract SVGNFT is ERC721Upgradeable, OwnableUpgradeable {
         uint256 id;
         bytes32 predictableRandom;
 
+        if (_tokenIds > limit) {
+            revert SVGNFT__DONEMINTING();
+        }
+
+        if (msg.value < price) {
+            revert SVGNFT__NFTPRICEHIGHER();
+        }
+
         assembly {
-            // Check if _tokenIds < limit
-            if gt(sload(_tokenIds.slot), limit) {
-                // Store the error message
-                mstore(0x00, 0x2260e398) // SVGNFT__DONEMINTING() selector
-                revert(0x00, 0x04)
-            }
-
-            // Check if msg.value >= price
-            if lt(callvalue(), sload(price.slot)) {
-                // Store the error message
-                mstore(0x00, 0x20) // Store offset to error string
-                mstore(0x20, 0x0a) // Store length of error string
-                mstore(0x40, "NOT ENOUGH") // Store error string
-                revert(0x00, 0x60) // Revert with error message
-            }
-
             // Calculate new price: price = (price * curve) / 1000
             let newPrice := div(mul(sload(price.slot), curve), 1000)
             sstore(price.slot, newPrice)
@@ -152,29 +145,58 @@ contract SVGNFT is ERC721Upgradeable, OwnableUpgradeable {
                 abi.encodePacked(
                     "data:application/json;base64,",
                     Base64.encode(
-                        bytes(
-                            abi.encodePacked(
-                                '{"name":"',
-                                name,
-                                '", "description":"',
-                                description,
-                                '", "external_url":"https://burnyboys.com/token/',
-                                id.toString(),
-                                '", "attributes": [{"trait_type": "color", "value": "#',
-                                color[id].toColor(),
-                                '"},{"trait_type": "chubbiness", "value": ',
-                                uint2str(chubbiness[id]),
-                                '},{"trait_type": "mouthLength", "value": ',
-                                uint2str(mouthLength[id]),
-                                '}], "owner":"',
-                                (uint160(ownerOf(id))).toHexString(20),
-                                '", "image": "',
-                                "data:image/svg+xml;base64,",
-                                image,
-                                '"}'
-                            )
+                        abi.encodePacked(
+                            '{"name":"',
+                            name,
+                            '","description":"',
+                            description,
+                            '","external_url":"https://burnyboys.com/token/',
+                            id.toString(),
+                            '","attributes":[',
+                            generateAttributes(id),
+                            '],"owner":"',
+                            uint256(uint160(ownerOf(id))).toHexString(20),
+                            '","image":"data:image/svg+xml;base64,',
+                            image,
+                            '"}'
                         )
                     )
+                )
+            );
+    }
+
+    function generateDescription(
+        uint256 id
+    ) internal view returns (string memory) {
+        return
+            string(
+                abi.encodePacked(
+                    "This Loogie is the color #",
+                    color[id].toColor(),
+                    " with a chubbiness of ",
+                    chubbiness[id].toString(),
+                    " and mouth length of ",
+                    mouthLength[id].toString(),
+                    "!!!"
+                )
+            );
+    }
+
+    function generateAttributes(
+        uint256 id
+    ) internal view returns (string memory) {
+        return
+            string(
+                abi.encodePacked(
+                    '{"trait_type":"color","value":"#',
+                    color[id].toColor(),
+                    '"},',
+                    '{"trait_type":"chubbiness","value":',
+                    chubbiness[id].toString(),
+                    "},",
+                    '{"trait_type":"mouthLength","value":',
+                    mouthLength[id].toString(),
+                    "}"
                 )
             );
     }
@@ -194,37 +216,26 @@ contract SVGNFT is ERC721Upgradeable, OwnableUpgradeable {
     }
 
     function renderTokenById(uint256 id) public view returns (string memory) {
-        // the translate function for the mouth is based on the curve y = 810/11 - 9x/11
-        string memory render = string(
-            abi.encodePacked(
-                '<g id="eye1">',
-                '<ellipse stroke-width="3" ry="29.5" rx="29.5" id="svg_1" cy="154.5" cx="181.5" stroke="#000" fill="#fff"/>',
-                '<ellipse ry="3.5" rx="2.5" id="svg_3" cy="154.5" cx="173.5" stroke-width="3" stroke="#000" fill="#000000"/>',
-                "</g>",
-                '<g id="head">',
-                '<ellipse fill="#',
-                color[id].toColor(),
-                '" stroke-width="3" cx="204.5" cy="211.80065" id="svg_5" rx="',
-                chubbiness[id].toString(),
-                '" ry="51.80065" stroke="#000"/>',
-                "</g>",
-                '<g id="eye2">',
-                '<ellipse stroke-width="3" ry="29.5" rx="29.5" id="svg_2" cy="168.5" cx="209.5" stroke="#000" fill="#fff"/>',
-                '<ellipse ry="3.5" rx="3" id="svg_4" cy="169.5" cx="208" stroke-width="3" fill="#000000" stroke="#000"/>',
-                "</g>"
-                '<g class="mouth" transform="translate(',
-                uint256((810 - 9 * chubbiness[id]) / 11).toString(),
-                ',0)">',
-                '<path d="M 130 240 Q 165 250 ',
-                mouthLength[id].toString(),
-                ' 235" stroke="black" stroke-width="3" fill="transparent"/>',
-                "</g>"
-            )
-        );
+        uint256 translateX = (810 - 9 * chubbiness[id]) / 11;
 
-        return render;
+        return
+            string(
+                abi.encodePacked(
+                    '<g id="eye1"><ellipse stroke-width="3" ry="29.5" rx="29.5" cy="154.5" cx="181.5" stroke="#000" fill="#fff"/><ellipse ry="3.5" rx="2.5" cy="154.5" cx="173.5" stroke-width="3" stroke="#000" fill="#000"/></g>',
+                    '<g id="head"><ellipse fill="#',
+                    color[id].toColor(),
+                    '" stroke-width="3" cx="204.5" cy="211.80065" rx="',
+                    chubbiness[id].toString(),
+                    '" ry="51.80065" stroke="#000"/></g>',
+                    '<g id="eye2"><ellipse stroke-width="3" ry="29.5" rx="29.5" cy="168.5" cx="209.5" stroke="#000" fill="#fff"/><ellipse ry="3.5" rx="3" cy="169.5" cx="208" stroke-width="3" fill="#000" stroke="#000"/></g>',
+                    '<g class="mouth" transform="translate(',
+                    translateX.toString(),
+                    ',0)"><path d="M130 240Q165 250 ',
+                    mouthLength[id].toString(),
+                    ' 235" stroke="#000" stroke-width="3" fill="none"/></g>'
+                )
+            );
     }
-
     function uint2str(uint256 _i) internal pure returns (string memory) {
         if (_i == 0) {
             return "0";

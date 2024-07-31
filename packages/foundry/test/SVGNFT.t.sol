@@ -91,18 +91,19 @@ contract SVGNFTProxyTest is Test {
         vm.startPrank(USER);
         vm.deal(USER, 10 ether);
 
-        for (uint i = 1; i < 12; i++) {
+        for (uint i = 1; i < 11; i++) {
             uint256 currentPrice = proxiedSVGNFT.getTokenPrice();
             proxiedSVGNFT.mintItem{value: currentPrice}();
         }
 
-        vm.expectRevert(SVGNFT.SVGNFT__DONEMINTING.selector);
         uint256 currentPrice = proxiedSVGNFT.getTokenPrice();
-        try proxiedSVGNFT.mintItem{value: currentPrice}() {} catch Error(
-            string memory reason
-        ) {
-            console.log("Minting failed with reason:", reason);
-        }
+
+        // The selector for ERC721NonexistentToken(uint256)
+        bytes4 selector = bytes4(keccak256("SVGNFT__DONEMINTING()"));
+
+        vm.expectRevert(abi.encodePacked(selector));
+
+        proxiedSVGNFT.mintItem{value: currentPrice}();
 
         vm.stopPrank();
     }
@@ -111,7 +112,14 @@ contract SVGNFTProxyTest is Test {
         vm.startPrank(USER);
         vm.deal(USER, 1 ether);
 
-        uint256 tokenId = proxiedSVGNFT.mintItem{value: 0.001 ether}();
+        for (uint i = 1; i < 9; i++) {
+            uint256 currentPrice = proxiedSVGNFT.getTokenPrice();
+            uint256 tokenId = proxiedSVGNFT.mintItem{value: currentPrice}();
+            proxiedSVGNFT.tokenURI(tokenId);
+        }
+
+        uint256 currentPrice = proxiedSVGNFT.getTokenPrice();
+        uint256 tokenId = proxiedSVGNFT.mintItem{value: currentPrice}();
         string memory uri = proxiedSVGNFT.tokenURI(tokenId);
 
         assertTrue(bytes(uri).length > 0, "Token URI should not be empty");
@@ -120,7 +128,10 @@ contract SVGNFTProxyTest is Test {
     }
 
     function testInvalidTokenURI() public {
-        vm.expectRevert(SVGNFT.SVGNFT__INVALIDTOKENID.selector);
+        // The selector for ERC721NonexistentToken(uint256)
+        bytes4 selector = bytes4(keccak256("ERC721NonexistentToken(uint256)"));
+
+        vm.expectRevert(abi.encodeWithSelector(selector, 999));
         proxiedSVGNFT.tokenURI(999);
     }
 
