@@ -12,7 +12,7 @@
     "format": "forge fmt && prettier --write ./script/**/*.js",
     "generate": "node script/generateAccount.js",
     "lint": "forge fmt --check && prettier --check ./script/**/*.js",
-    "test": "forge test --gas-report -vv",
+    "test": "forge test --gas-report -vvv",
     "verify": "forge build --build-info --build-info-path out/build-info/ && forge script script/VerifyAll.s.sol --ffi --rpc-url ${1:-default_network}"
   },
   "dependencies": {
@@ -28,6 +28,7 @@
     "@openzeppelin/contracts-upgradeable": "^5.0.2",
     "@types/prettier": "2",
     "@types/qrcode": "1",
-    "base64-sol": "^1.1.0"
+    "base64-sol": "^1.1.0",
+    "solady": "^0.0.228"
   }
 }
