@@ -86,10 +86,7 @@ export const Header = () => {
             <RainbowKitCustomConnectButton />
             <FaucetButton />
             <div className="lg:hidden" ref={burgerMenuRef}>
-              <button
-                className="btn btn-ghost btn-sm"
-                onClick={() => setIsDrawerOpen(prev => !prev)}
-              >
+              <button className="btn btn-ghost btn-sm" onClick={() => setIsDrawerOpen(prev => !prev)}>
                 <Bars3Icon className="h-6 w-6" />
               </button>
               {isDrawerOpen && (

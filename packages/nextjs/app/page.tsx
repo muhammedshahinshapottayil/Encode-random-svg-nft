@@ -1,8 +1,8 @@
 "use client";
 
 import { NextPage } from "next";
-import { useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
 import NFTGrid from "~~/components/NFTGrid";
+import { useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
 
 const Home: NextPage = () => {
   const { writeContractAsync: writeYourContractAsync } = useScaffoldWriteContract("SVGNFT");
@@ -26,7 +26,7 @@ const Home: NextPage = () => {
     } catch (e) {
       console.error("Error setting greeting:", e);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -36,7 +36,10 @@ const Home: NextPage = () => {
           Optimistic Loogies NFT
         </h1>
         <div className="flex justify-center mb-24">
-          <button onClick={mintToken} className="bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-white font-bold py-4 px-12 rounded-full transform hover:scale-105 transition duration-300 ease-in-out shadow-xl hover:shadow-2xl text-lg">
+          <button
+            onClick={mintToken}
+            className="bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-white font-bold py-4 px-12 rounded-full transform hover:scale-105 transition duration-300 ease-in-out shadow-xl hover:shadow-2xl text-lg"
+          >
             Mint Your Loogie
           </button>
         </div>
